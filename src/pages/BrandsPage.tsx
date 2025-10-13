@@ -11,6 +11,7 @@ import { RoleBasedAccess, ReadOnlyWarning } from '../components/RoleBasedAccess'
 import { useAuth } from '../hooks/useAuth';
 import { usePermissions } from '../lib/permissions';
 import { t } from '../lib/i18n';
+import EditBrandForm from '../components/EditBrandForm';
 
 export default function BrandsPage() {
   const [brands, setBrands] = useState<(Brand & { productCount?: number })[]>([]);
@@ -20,6 +21,7 @@ export default function BrandsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newBrandName, setNewBrandName] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const navigate = useNavigate();
   const { role } = useAuth();
   const permissions = usePermissions(role);
@@ -289,7 +291,7 @@ export default function BrandsPage() {
                       </button>
                       <RoleBasedAccess permission="EDIT_BRAND">
                         <button
-                          onClick={() => navigate(`/brands/${brand.id}/edit`)}
+                          onClick={() => setEditingBrand(brand)}
                           className="p-2 text-gray-400 hover:text-primary-600 rounded-lg hover:bg-primary-50"
                           title="Edit brand"
                         >
@@ -318,6 +320,17 @@ export default function BrandsPage() {
             </div>
           )}
         </div>
+
+        {editingBrand && (
+          <EditBrandForm
+            brand={editingBrand}
+            onClose={() => setEditingBrand(null)}
+            onSuccess={() => {
+              setEditingBrand(null);
+              loadBrands();
+            }}
+          />
+        )}
       </div>
     </Layout>
   );
