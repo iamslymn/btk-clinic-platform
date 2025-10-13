@@ -1,0 +1,4 @@
+# Supabase configuration for Edge Functions
+
+[functions.create-manager]
+verify_jwt = false  # We handle JWT verification manually in the function
