@@ -581,3 +581,211 @@ export const getRepVisitStats = async (repId: string) => {
     monthCompletionRate: monthVisits?.length ? Math.round((monthCompleted / monthVisits.length) * 100) : 0,
   };
 };
+
+// Extended visit log with representative details for admin/manager view
+export interface VisitLogWithRepresentative extends VisitLogWithDetails {
+  representative?: {
+    id: string;
+    full_name: string;
+    first_name?: string;
+    last_name?: string;
+  };
+  clinic?: {
+    id: string;
+    name: string;
+    address?: string;
+  };
+}
+
+// Filters for admin/manager visit history
+export interface VisitHistoryFilters {
+  representativeId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  doctorName?: string;
+  managerId?: string; // For manager-scoped queries
+}
+
+/**
+ * Get all visit history with filters for managers and admins
+ * @param filters - Filtering options
+ * @returns List of visits with full details
+ */
+export const getAllVisitHistory = async (
+  filters: VisitHistoryFilters = {}
+): Promise<VisitLogWithRepresentative[]> => {
+  try {
+    let query = supabase
+      .from('visit_logs')
+      .select(`
+        *,
+        doctors!visit_logs_doctor_id_fkey (
+          id,
+          first_name,
+          last_name,
+          specialty,
+          category,
+          address,
+          total_category,
+          planeta_category
+        ),
+        representatives!visit_logs_rep_id_fkey (
+          id,
+          full_name,
+          first_name,
+          last_name
+        )
+      `)
+      .order('scheduled_date', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    // Apply filters
+    if (filters.representativeId) {
+      query = query.eq('rep_id', filters.representativeId);
+    }
+
+    if (filters.dateFrom) {
+      query = query.gte('scheduled_date', filters.dateFrom);
+    }
+
+    if (filters.dateTo) {
+      query = query.lte('scheduled_date', filters.dateTo);
+    }
+
+    if (filters.status && filters.status !== 'all') {
+      query = query.eq('status', filters.status);
+    }
+
+    // Manager scope: filter by manager's representatives
+    if (filters.managerId) {
+      const { data: managerReps, error: repsError } = await supabase
+        .from('representatives')
+        .select('id')
+        .eq('manager_id', filters.managerId);
+
+      if (repsError) throw repsError;
+
+      const repIds = (managerReps || []).map((r: any) => r.id);
+      if (repIds.length > 0) {
+        query = query.in('rep_id', repIds);
+      } else {
+        // Manager has no representatives, return empty
+        return [];
+      }
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    let visits = (data || []).map((log: any) => ({
+      ...log,
+      doctor: log.doctors as Doctor,
+      representative: log.representatives
+    }));
+
+    // Apply doctor name filter (client-side for flexibility)
+    if (filters.doctorName) {
+      const searchTerm = filters.doctorName.toLowerCase();
+      visits = visits.filter((v: any) => {
+        const doctorFullName = v.doctor 
+          ? `${v.doctor.first_name} ${v.doctor.last_name}`.toLowerCase()
+          : '';
+        return doctorFullName.includes(searchTerm);
+      });
+    }
+
+    return visits;
+  } catch (error) {
+    console.error('Error getting all visit history:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get visit statistics for admin/manager dashboard
+ * @param managerId - Optional manager ID to scope to their team
+ * @returns Visit statistics
+ */
+export const getVisitStatsForAdmin = async (managerId?: string) => {
+  try {
+    const today = new Date();
+    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    let baseQuery = supabase.from('visit_logs');
+
+    // If manager, scope to their representatives
+    if (managerId) {
+      const { data: managerReps } = await supabase
+        .from('representatives')
+        .select('id')
+        .eq('manager_id', managerId);
+
+      const repIds = (managerReps || []).map((r: any) => r.id);
+      if (repIds.length === 0) {
+        return {
+          weekCompleted: 0,
+          weekTotal: 0,
+          monthCompleted: 0,
+          monthTotal: 0,
+          totalVisits: 0,
+          completedVisits: 0,
+          postponedVisits: 0,
+          missedVisits: 0,
+          weekCompletionRate: 0,
+          monthCompletionRate: 0,
+        };
+      }
+      baseQuery = baseQuery.in('rep_id', repIds);
+    }
+
+    // This week's visits
+    const { data: weekVisits } = await baseQuery
+      .select('status')
+      .gte('scheduled_date', format(weekStart, 'yyyy-MM-dd'))
+      .lte('scheduled_date', format(weekEnd, 'yyyy-MM-dd'));
+
+    // This month's visits
+    const { data: monthVisits } = await baseQuery
+      .select('status')
+      .gte('scheduled_date', format(monthStart, 'yyyy-MM-dd'));
+
+    // All-time stats
+    const { data: allVisits } = await baseQuery.select('status');
+
+    const weekCompleted = weekVisits?.filter((v: any) => v.status === 'completed').length || 0;
+    const monthCompleted = monthVisits?.filter((v: any) => v.status === 'completed').length || 0;
+    const totalCompleted = allVisits?.filter((v: any) => v.status === 'completed').length || 0;
+    const totalPostponed = allVisits?.filter((v: any) => v.status === 'postponed').length || 0;
+    const totalMissed = allVisits?.filter((v: any) => v.status === 'missed').length || 0;
+
+    return {
+      weekCompleted,
+      weekTotal: weekVisits?.length || 0,
+      monthCompleted,
+      monthTotal: monthVisits?.length || 0,
+      totalVisits: allVisits?.length || 0,
+      completedVisits: totalCompleted,
+      postponedVisits: totalPostponed,
+      missedVisits: totalMissed,
+      weekCompletionRate: weekVisits?.length ? Math.round((weekCompleted / weekVisits.length) * 100) : 0,
+      monthCompletionRate: monthVisits?.length ? Math.round((monthCompleted / monthVisits.length) * 100) : 0,
+    };
+  } catch (error) {
+    console.error('Error getting visit stats for admin:', error);
+    return {
+      weekCompleted: 0,
+      weekTotal: 0,
+      monthCompleted: 0,
+      monthTotal: 0,
+      totalVisits: 0,
+      completedVisits: 0,
+      postponedVisits: 0,
+      missedVisits: 0,
+      weekCompletionRate: 0,
+      monthCompletionRate: 0,
+    };
+  }
+};

@@ -32,6 +32,7 @@ export const AZ_TRANSLATIONS = {
     visitAssignments: 'Vizit Tapşırıqları',
     schedule: 'Cədvəl',
     visits: 'Vizitlər',
+    visitHistory: 'Ziyarət Tarixçəsi',
     settings: 'Tənzimləmələr'
   },
 
@@ -921,6 +922,24 @@ export const AZ_TRANSLATIONS = {
         confirmText: 'Seçilmiş həkimlə görüşə başlamaq istədiyinizə əminsiniz?',
         yesStart: 'Bəli, başla',
         noCancel: 'Xeyr, ləğv et'
+      },
+      discussedProducts: {
+        title: 'Danışılan dərmanlar',
+        selectProducts: 'Məhsulları seçin',
+        save: 'Yadda saxla',
+        search: 'Axtarış',
+        noData: 'Məlumat tapılmadı',
+        selected: 'seçildi',
+        noProductsAvailable: 'Sizə təyin edilmiş brendlərdə məhsul yoxdur',
+        saving: 'Yadda saxlanır...',
+        successSaved: 'Danışılan dərmanlar uğurla yadda saxlanıldı',
+        errorSaving: 'Yadda saxlamaq uğursuz oldu',
+        loadingProducts: 'Məhsullar yüklənir...',
+        cancel: 'Ləğv et',
+        clear: 'Təmizlə',
+        selectAll: 'Hamısını seç',
+        brand: 'Brend',
+        noBrands: 'Sizə brend təyin edilməyib'
       }
     },
     schedule: {
@@ -1013,6 +1032,60 @@ export const AZ_TRANSLATIONS = {
         postponed: 'Təxirə salındı',
         missed: 'Qaçırıldı'
       }
+    },
+    adminVisitHistory: {
+      title: 'Ziyarət Tarixçəsi',
+      subtitle: 'Bütün nümayəndələrin ziyarətlərini izləyin',
+      filters: {
+        title: 'Filtrlər',
+        representative: 'Nümayəndə',
+        selectRepresentative: 'Nümayəndə seçin',
+        allRepresentatives: 'Bütün nümayəndələr',
+        dateRange: 'Tarix aralığı',
+        dateFrom: 'Başlanğıc tarix',
+        dateTo: 'Bitmə tarixi',
+        status: 'Status',
+        selectStatus: 'Status seçin',
+        doctorSearch: 'Həkim axtarışı',
+        doctorSearchPlaceholder: 'Həkim adı ilə axtar...',
+        applyFilters: 'Filtrləri tətbiq et',
+        resetFilters: 'Filtrləri sıfırla'
+      },
+      stats: {
+        totalVisits: 'Ümumi ziyarətlər',
+        completedVisits: 'Bitmiş görüşlər',
+        postponedVisits: 'Təxirə salınmış',
+        missedVisits: 'Tamamlanmamış',
+        thisWeek: 'Bu həftə',
+        thisMonth: 'Bu ay',
+        completionRate: 'Tamamlanma nisbəti'
+      },
+      card: {
+        representative: 'Nümayəndə',
+        doctor: 'Həkim',
+        specialty: 'İxtisas',
+        clinic: 'Klinika',
+        date: 'Tarix',
+        status: 'Status',
+        discussedProducts: 'Danışılan dərmanlar',
+        noProducts: 'Bu görüşdə dərman qeyd olunmayıb',
+        postponeReason: 'Təxirə salınma səbəbi'
+      },
+      statuses: {
+        all: 'Hamısı',
+        completed: 'Bitmiş görüşlər',
+        in_progress: 'Gedişatda görüşlər',
+        postponed: 'Təxirə salınmış görüşlər',
+        missed: 'Tamamlanmamış görüşlər'
+      },
+      export: {
+        button: 'Məlumatı ixrac et',
+        csv: 'CSV-yə ixrac et',
+        excel: 'Excel-ə ixrac et'
+      },
+      noData: 'Məlumat tapılmadı',
+      adjustFilters: 'Filtrləri tənzimləyin və ya tarix aralığını dəyişin',
+      loading: 'Ziyarətlər yüklənir...'
     }
   },
 

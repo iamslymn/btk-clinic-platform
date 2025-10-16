@@ -21,6 +21,7 @@ import RepBrandsPage from './pages/RepBrandsPage';
 import ReportsPage from './pages/ReportsPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import NotificationsPage from './pages/NotificationsPage';
+import AdminVisitHistoryPage from './pages/AdminVisitHistoryPage';
 
 function ProtectedRoute({ 
   children, 
@@ -109,6 +110,24 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['super_admin','manager','rep']}>
             <NotificationsPage />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Visit History for Admins and Managers */}
+      <Route 
+        path="/super-admin/visit-history" 
+        element={
+          <ProtectedRoute allowedRoles={['super_admin']}>
+            <AdminVisitHistoryPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/manager/visit-history" 
+        element={
+          <ProtectedRoute allowedRoles={['manager']}>
+            <AdminVisitHistoryPage />
           </ProtectedRoute>
         } 
       />

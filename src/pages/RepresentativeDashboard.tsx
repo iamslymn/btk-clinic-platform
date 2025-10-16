@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Calendar, CheckCircle, XCircle, AlertCircle, Play, Square, User, Package, Eye, Timer } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, AlertCircle, Play, Square, User, Package, Eye, Timer, Pill } from 'lucide-react';
 import Layout from '../components/Layout';
 import { useAuth } from '../hooks/useAuth';
 import { assignmentService } from '../lib/services/assignment-service-simple';
@@ -10,6 +10,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { supabase } from '../lib/supabase';
 import { startVisit, endVisit, addRoutePoints, createInstantVisit, hasActiveVisit } from '../lib/api/visits';
 import { t, toAzWeekday } from '../lib/i18n';
+import DiscussedProductsSelector from '../components/DiscussedProductsSelector';
 
 export default function RepresentativeDashboard() {
   const { user, representative } = useAuth();
@@ -25,6 +26,7 @@ export default function RepresentativeDashboard() {
   } | null>(null);
   const [meetingInterval, setMeetingInterval] = useState<NodeJS.Timeout | null>(null);
   const [productModal, setProductModal] = useState<{assignment: AssignmentListItem} | null>(null);
+  const [discussedProductsModal, setDiscussedProductsModal] = useState<{ visitId: string; repId: string } | null>(null);
   const [stats, setStats] = useState({
     totalAssignments: 0,
     todayAssignments: 0,
@@ -815,7 +817,7 @@ export default function RepresentativeDashboard() {
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                   <Timer className="w-6 h-6 text-green-600" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-gray-900">{t('representative.dashboard.meetingInProgress')}</h3>
                   <p className="text-sm text-gray-600">
                     {activeMeeting.doctorName || (() => {
@@ -828,18 +830,32 @@ export default function RepresentativeDashboard() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={handleEndMeeting}
-                disabled={actionLoading === activeMeeting.assignmentId}
-                className="btn-primary flex items-center gap-2"
-              >
-                {actionLoading === activeMeeting.assignmentId ? (
-                  <LoadingSpinner size="sm" />
-                ) : (
-                  <Square className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                {/* Discussed Products Button */}
+                {activeMeeting.visitLogId && representative?.id && (
+                  <button
+                    onClick={() => setDiscussedProductsModal({ visitId: activeMeeting.visitLogId!, repId: representative.id })}
+                    className="btn-secondary flex items-center gap-2 text-sm"
+                  >
+                    <Pill className="w-4 h-4" />
+                    {t('representative.dashboard.discussedProducts.title')}
+                  </button>
                 )}
-                {t('representative.dashboard.finishMeeting')}
-              </button>
+                
+                {/* End Meeting Button */}
+                <button
+                  onClick={handleEndMeeting}
+                  disabled={actionLoading === activeMeeting.assignmentId}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {actionLoading === activeMeeting.assignmentId ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    <Square className="w-4 h-4" />
+                  )}
+                  {t('representative.dashboard.finishMeeting')}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1150,6 +1166,24 @@ export default function RepresentativeDashboard() {
                   <p>{t('representative.dashboard.noProducts')}</p>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Discussed Products Modal */}
+        {discussedProductsModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              <DiscussedProductsSelector
+                visitId={discussedProductsModal.visitId}
+                representativeId={discussedProductsModal.repId}
+                onSave={() => {
+                  setDiscussedProductsModal(null);
+                  alert(t('representative.dashboard.discussedProducts.successSaved'));
+                }}
+                onCancel={() => setDiscussedProductsModal(null)}
+                readOnly={false}
+              />
             </div>
           </div>
         )}

@@ -14,6 +14,7 @@ import {
   Tag,
   Building,
   Bell,
+  History,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES, isRouteActive } from '../lib/routes';
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
   { path: ROUTES.SUPER_ADMIN_SPECIALIZATIONS, label: t('nav.specializations'), icon: Stethoscope, roles: ['super_admin'] },
   { path: ROUTES.SUPER_ADMIN_BRANDS, label: t('nav.brands'), icon: Tag, roles: ['super_admin'] },
   { path: ROUTES.SUPER_ADMIN_PRODUCTS, label: t('nav.products'), icon: Package, roles: ['super_admin'] },
+  { path: '/super-admin/visit-history', label: t('nav.visitHistory'), icon: History, roles: ['super_admin'] },
   { path: ROUTES.SUPER_ADMIN_REPORTS, label: t('nav.reports'), icon: PieChart, roles: ['super_admin'] },
   { path: '/notifications', label: 'Bildirişlər', icon: Bell, roles: ['super_admin'] },
   
@@ -47,6 +49,7 @@ const navItems: NavItem[] = [
   { path: ROUTES.MANAGER_ASSIGNMENTS, label: t('nav.visitAssignments'), icon: Link2, roles: ['manager'] },
   { path: ROUTES.MANAGER_BRANDS, label: t('nav.brands'), icon: Tag, roles: ['manager'] },
   { path: ROUTES.MANAGER_PRODUCTS, label: t('nav.products'), icon: ShoppingBag, roles: ['manager'] },
+  { path: '/manager/visit-history', label: t('nav.visitHistory'), icon: History, roles: ['manager'] },
   { path: ROUTES.MANAGER_REPORTS, label: t('nav.reports'), icon: PieChart, roles: ['manager'] },
   { path: '/notifications', label: 'Bildirişlər', icon: Bell, roles: ['manager'] },
   

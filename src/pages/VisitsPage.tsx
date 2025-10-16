@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, User, CheckCircle, XCircle, AlertCircle, Filter, Search, ChevronDown } from 'lucide-react';
+import { Calendar, MapPin, User, CheckCircle, XCircle, AlertCircle, Filter, Search, ChevronDown, Pill } from 'lucide-react';
 import { format, subWeeks, subMonths, parseISO } from 'date-fns';
 import { az } from 'date-fns/locale';
 import Layout from '../components/Layout';
@@ -10,6 +10,7 @@ import type { VisitLogWithDetails } from '../lib/api/visits';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { supabase } from '../lib/supabase';
 import { t } from '../lib/i18n';
+import { getDiscussedProductsSummary } from '../lib/api/discussed-products';
 
 type FilterPeriod = 'week' | 'month' | '3months' | 'all';
 type FilterStatus = 'all' | 'completed' | 'postponed' | 'missed';
@@ -19,6 +20,7 @@ export default function VisitsPage() {
   const [loading, setLoading] = useState(true);
   const [visits, setVisits] = useState<VisitLogWithDetails[]>([]);
   const [filteredVisits, setFilteredVisits] = useState<VisitLogWithDetails[]>([]);
+  const [discussedProducts, setDiscussedProducts] = useState<Record<string, string[]>>({});
   const [stats, setStats] = useState({
     weekCompleted: 0,
     weekTotal: 0,
@@ -77,6 +79,13 @@ export default function VisitsPage() {
       
       setVisits(visitsData);
       setStats(statsData);
+
+      // Load discussed products for all visits
+      if (visitsData.length > 0) {
+        const visitIds = visitsData.map(v => v.id);
+        const discussedProductsData = await getDiscussedProductsSummary(visitIds);
+        setDiscussedProducts(discussedProductsData);
+      }
     } catch (error) {
       // optional structured logging could be added behind a flag
     } finally {
@@ -142,6 +151,13 @@ export default function VisitsPage() {
       
       setVisits(visitsData);
       setStats(statsData);
+
+      // Load discussed products for all visits
+      if (visitsData.length > 0) {
+        const visitIds = visitsData.map(v => v.id);
+        const discussedProductsData = await getDiscussedProductsSummary(visitIds);
+        setDiscussedProducts(discussedProductsData);
+      }
     } catch (error) {
       // optional structured logging could be added behind a flag
     } finally {
@@ -427,6 +443,30 @@ export default function VisitsPage() {
                             )}
                           </div>
                         </div>
+
+                        {/* Discussed Products */}
+                        {discussedProducts[visit.id] && discussedProducts[visit.id].length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <div className="flex items-start gap-2">
+                              <Pill className="w-4 h-4 text-blue-600 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900 mb-1">
+                                  Danışılan dərmanlar:
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {discussedProducts[visit.id].map((product, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                    >
+                                      {product}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
